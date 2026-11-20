@@ -22,7 +22,7 @@ def destination(path: str) -> str:
 def page(next_url='/trax/', failed=False):
     message = '<p style="color:#b42318">Invalid token or user.</p>' if failed else ''
     markup = f'''<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Trackinizer sign in</title><style>body{{font:16px system-ui;background:#edf2f7;display:grid;place-items:center;min-height:90vh}}main{{background:white;border:1px solid #ccd6df;border-radius:14px;padding:34px;width:min(420px,85vw)}}input,button{{box-sizing:border-box;display:block;width:100%;padding:12px;font:inherit;margin:12px 0}}button{{background:#1961ac;color:white;border:0;border-radius:7px}}</style></head><body><main><h1>Trackinizer</h1><p>Sign in using your personal API token.</p>{message}<form action="/auth/token-login" method="POST"><input type="hidden" name="next" value="{html.escape(destination(next_url),quote=True)}"><label for="token">API token</label><input id="token" name="token" type="password" maxlength="180" required autocomplete="off"><button type="submit">Sign in</button></form><small>Keep this token secret. Use only HTTPS.</small></main></body></html>'''
-    return HTMLResponse(markup,status_code=401 if failed else 200,headers={'Cache-Control':'no-store','Referrer-Policy':'no-referrer','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'"})
+    return HTMLResponse(markup,status_code=401 if failed else 200,headers={'Cache-Control':'no-store','Referrer-Policy':'same-origin','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'"})
 
 
 async def sign_in_page(request: Request):
@@ -108,7 +108,7 @@ def invite_page(info="", issued=None):
         out,
         headers={
             "Cache-Control":"no-store",
-            "Referrer-Policy":"no-referrer",
+            "Referrer-Policy":"same-origin",
             "X-Frame-Options":"DENY",
             "Content-Security-Policy":"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'",
         },
