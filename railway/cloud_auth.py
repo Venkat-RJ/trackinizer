@@ -45,9 +45,12 @@ async def sign_in(request: Request):
     try: actor=await request_user(Probe(scope,receive=request.receive))
     except HTTPException: return page(next_url,True)
     if actor.email.endswith('@service.invalid'): return page(next_url,True)
+    # Do not upgrade a restricted key to its owner's full browser permissions.
     async with request.app.state.engine.acquire() as db:
-        generation=await db.fetchval('SELECT session_generation FROM users WHERE id=$1',actor.user_id)
-    if generation is None: return page(next_url,True)
+        row=await db.fetchrow('SELECT u.session_generation, u.role, k.open_into FROM users u JOIN api_keys k ON k.user_id=u.id WHERE u.id=$1 AND k.id=$2',actor.user_id,actor.api_key_id)
+    if row is None or actor.role != row['role'] or row['open_into'] is not None:
+        return page(next_url,True)
+    generation=row['session_generation']
     cfg=request.app.state.config
     if not cfg.session_secret: raise RuntimeError('Configure TRACKINIZER_SESSION_SECRET_FILE')
     response=RedirectResponse(next_url,status_code=303,headers={'Cache-Control':'no-store'})
